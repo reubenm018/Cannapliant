@@ -6,7 +6,7 @@ const PRODUCT_TYPES = [
   { id: "non_mfg", label: "Flower / Non-Infused Pre-Rolls", icon: "🌿", desc: "Non-manufactured cannabis flower & pre-rolls" },
 ];
 
-// ── Embedded regulatory checklists derived from Final Bell documents & DCC regs ──
+// ── Embedded regulatory checklists derived from DCC regs ──
 const CHECKLISTS = {
   edibles: {
     title: "MFG - Edibles Labeling Checklist",
@@ -69,11 +69,11 @@ const CHECKLISTS = {
         { id: "e6b", text: "Prop 65 warning symbol (triangle with !) next to 'WARNING:'", reg: "CA Prop 65", severity: "high" },
         { id: "e6c", text: "Prop 65 symbol at least same height as word 'WARNING'", reg: "CA Prop 65", severity: "medium" },
       ]},
-      { name: "Final Bell Internal Requirements", items: [
+      { name: "Internal Requirements", items: [
         { id: "e7a", text: "Expiration date present (required for edibles)", reg: "Internal/Best Practice", severity: "high" },
         { id: "e7b", text: "THC in mg per package AND mg per serving format", reg: "Internal Memo", severity: "high" },
         { id: "e7c", text: "CBD in mg per package AND mg per serving format", reg: "Internal Memo", severity: "high" },
-        { id: "e7d", text: "Final Bell WS / 818.314.4791 contact info present", reg: "Internal Memo", severity: "medium" },
+        { id: "e7d", text: "Licensee contact info present", reg: "Internal Memo", severity: "medium" },
         { id: "e7e", text: "Space reserved for additional cannabinoid >5% (relabeling contingency)", reg: "Internal Best Practice", severity: "low" },
       ]},
       { name: "LADCR Requirements (City of LA)", items: [
@@ -140,11 +140,11 @@ const CHECKLISTS = {
         { id: "v6b", text: "Prop 65 warning symbol next to 'WARNING:'", reg: "CA Prop 65", severity: "high" },
         { id: "v6c", text: "Prop 65 symbol at least same height as 'WARNING'", reg: "CA Prop 65", severity: "medium" },
       ]},
-      { name: "Final Bell Internal Requirements", items: [
+      { name: "Internal Requirements", items: [
         { id: "v7a", text: "Total THC as percentage present", reg: "Internal Memo", severity: "high" },
         { id: "v7b", text: "THC in mg per container", reg: "Internal Memo", severity: "high" },
         { id: "v7c", text: "CBD in mg per container (if applicable)", reg: "Internal Memo", severity: "medium" },
-        { id: "v7d", text: "Final Bell WS / 818.314.4791 contact info", reg: "Internal Memo", severity: "medium" },
+        { id: "v7d", text: "Licensee contact info", reg: "Internal Memo", severity: "medium" },
         { id: "v7e", text: "Space for additional cannabinoid >5%", reg: "Internal Best Practice", severity: "low" },
       ]},
       { name: "LADCR Requirements (City of LA)", items: [
@@ -199,11 +199,11 @@ const CHECKLISTS = {
         { id: "n5b", text: "Prop 65 warning symbol next to 'WARNING:'", reg: "CA Prop 65", severity: "high" },
         { id: "n5c", text: "Prop 65 symbol at least same height as 'WARNING'", reg: "CA Prop 65", severity: "medium" },
       ]},
-      { name: "Final Bell Internal Requirements", items: [
+      { name: "Internal Requirements", items: [
         { id: "n6a", text: "Total THC percentage present", reg: "Internal Memo", severity: "high" },
         { id: "n6b", text: "UID present", reg: "Internal Memo", severity: "critical" },
         { id: "n6c", text: "Batch number present", reg: "Internal Memo", severity: "critical" },
-        { id: "n6d", text: "Final Bell WS / 818.314.4791 contact info", reg: "Internal Memo", severity: "medium" },
+        { id: "n6d", text: "Licensee contact info", reg: "Internal Memo", severity: "medium" },
         { id: "n6e", text: "Any cannabinoid above 5% listed", reg: "Internal Memo", severity: "high" },
       ]},
       { name: "LADCR Requirements (City of LA)", items: [
@@ -215,13 +215,13 @@ const CHECKLISTS = {
   }
 };
 
-const SYSTEM_PROMPT = `You are a cannabis regulatory compliance expert specializing in California Department of Cannabis Control (DCC) regulations and Los Angeles Department of Cannabis Regulation (LADCR) rules. You work for Final Bell, a licensed white-label co-manufacturer, distributor, and non-storefront retailer in Los Angeles.
+const SYSTEM_PROMPT = `You are a cannabis regulatory compliance expert specializing in California Department of Cannabis Control (DCC) regulations and Los Angeles Department of Cannabis Regulation (LADCR) rules.
 
 Your job is to analyze cannabis product packaging and labels for compliance with:
 1. DCC Regulations (CCR Title 4 Div. 19, Chapter 11 §§17402-17410) - Labeling & Packaging (revised January 1, 2026)
 2. LADCR Rules & Regulations (Effective Oct 17, 2025) — NOTE: LADCR does not contain product-specific labeling requirements; it primarily governs licensing, operations, and security. LADCR enforces State labeling compliance and prohibits deceptive/false/misleading statements on products and customer-facing documents (LADCR Reg 5(A)(1)(xi)). Products must be labeled before leaving premises for delivery/distribution (Reg 5(D)(3)).
 3. California Prop 65 warnings specific to cannabis products
-4. Final Bell internal standards and the Labeled Cannabinoid Memo
+4. Internal standards and the Labeled Cannabinoid Memo
 
 KEY REGULATORY REQUIREMENTS (DCC Jan 1, 2026 revision):
 - §17402: All label text in English, unobstructed/conspicuous, required info on outermost packaging
