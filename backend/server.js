@@ -15,6 +15,10 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 app.post('/api/messages', async (req, res) => {
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
