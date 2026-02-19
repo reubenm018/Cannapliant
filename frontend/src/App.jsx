@@ -491,7 +491,7 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
               <div style={{ fontSize: 18, fontWeight: 700, color: "#f8fafc", letterSpacing: -0.5 }}>
                 Cannapliant</div>
               <div style={{ fontSize: 11, color: "#64748b", letterSpacing: 0.5 }}>
-                DCC (Jan 2026) · LADCR (Oct 2025) · Prop 65 · Final Bell Standards</div>
+                DCC (Jan 2026) · LADCR (Oct 2025) · Prop 65</div>
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
