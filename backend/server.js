@@ -10,23 +10,18 @@ const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 // ---------------------------------------------------------------------------
 // CORS
 // ---------------------------------------------------------------------------
-const allowedOrigins = [
-  'http://localhost:5173',
-  process.env.FRONTEND_URL,
-  process.env.FRONTEND_ORIGIN,
-].filter(Boolean);
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'https://cannapliant.vercel.app',
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+};
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error(`CORS: origin ${origin} not allowed`));
-    },
-    methods: ['POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type'],
-  })
-);
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json({ limit: '25mb' }));
 
@@ -73,5 +68,5 @@ app.post('/api/messages', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Cannapliant backend listening on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
