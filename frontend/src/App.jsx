@@ -736,6 +736,29 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
             <p style={{ color: "#64748b", fontSize: 13, marginBottom: 24 }}>
               {uploadedFile?.name} · {CHECKLISTS[selectedType]?.title}</p>
 
+            {/* Uploaded Label Preview */}
+            {filePreview && (
+              <div style={{ marginBottom: 24, textAlign: "center" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase",
+                  letterSpacing: 1, marginBottom: 8 }}>Uploaded Label</div>
+                <div style={{ display: "inline-block", border: "1px solid #2a3a5c", borderRadius: 8,
+                  overflow: "hidden", maxWidth: 300 }}>
+                  {filePreview.type === "image" ? (
+                    <img src={filePreview.data} alt="Uploaded label"
+                      style={{ display: "block", width: "100%", maxWidth: 300 }} />
+                  ) : (
+                    <div style={{ padding: 20, display: "flex", flexDirection: "column",
+                      alignItems: "center", gap: 8, background: "#0f172a" }}>
+                      <span style={{ fontSize: 36 }}>📄</span>
+                      <span style={{ fontSize: 12, color: "#94a3b8", wordBreak: "break-all" }}>
+                        {filePreview.name}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Summary */}
             {results.summary && (
               <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12,
