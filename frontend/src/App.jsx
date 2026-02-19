@@ -256,57 +256,27 @@ Output your analysis as JSON with this structure:
       "regulation": "Specific regulation cite"
     }
   ],
-  "complianceScore": 0-100,
+  "complianceScore": numeric integer 0-100 (the UI converts this to a letter grade),
   "riskScore": 0-100,
   "criticalIssues": ["list of critical failures"],
   "recommendations": ["prioritized list of fixes"]
 }`;
 
-// ── Gauge Component ──
-function ScoreGauge({ score, label, color }) {
-  const radius = 58;
-  const circumference = 2 * Math.PI * radius;
-  const progress = (score / 100) * circumference;
-  const getColor = () => {
-    if (color) return color;
-    if (score >= 80) return "#22c55e";
-    if (score >= 60) return "#eab308";
-    if (score >= 40) return "#f97316";
-    return "#ef4444";
-  };
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-      <svg width="140" height="140" viewBox="0 0 140 140">
-        <circle cx="70" cy="70" r={radius} fill="none" stroke="#1e293b" strokeWidth="10" />
-        <circle cx="70" cy="70" r={radius} fill="none" stroke={getColor()} strokeWidth="10"
-          strokeDasharray={circumference} strokeDashoffset={circumference - progress}
-          strokeLinecap="round" transform="rotate(-90 70 70)"
-          style={{ transition: "stroke-dashoffset 1s ease-out" }} />
-        <text x="70" y="65" textAnchor="middle" fill="#f8fafc" fontSize="32" fontWeight="700"
-          fontFamily="'DM Mono', monospace">{score}</text>
-        <text x="70" y="85" textAnchor="middle" fill="#94a3b8" fontSize="11"
-          fontFamily="'DM Sans', sans-serif">/ 100</text>
-      </svg>
-      <span style={{ color: "#94a3b8", fontSize: 13, fontWeight: 600, letterSpacing: 1,
-        textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>{label}</span>
-    </div>
-  );
-}
-
-// ── Status Badge ──
-function StatusBadge({ status }) {
-  const styles = {
-    pass: { bg: "#052e16", color: "#4ade80", border: "#166534", label: "PASS" },
-    fail: { bg: "#350a0a", color: "#f87171", border: "#7f1d1d", label: "FAIL" },
-    warning: { bg: "#352a04", color: "#fbbf24", border: "#713f12", label: "WARNING" },
-    unverifiable: { bg: "#1e1b4b", color: "#a5b4fc", border: "#3730a3", label: "UNVERIFIABLE" },
-  };
-  const s = styles[status] || styles.unverifiable;
-  return (
-    <span style={{ display: "inline-block", padding: "2px 10px", borderRadius: 4, fontSize: 10,
-      fontWeight: 700, letterSpacing: 1.2, background: s.bg, color: s.color, border: `1px solid ${s.border}`,
-      fontFamily: "'DM Mono', monospace" }}>{s.label}</span>
-  );
+// ── Letter Grade Helper ──
+function scoreToGrade(score) {
+  if (score >= 97) return { grade: "A+", color: "#22c55e" };
+  if (score >= 93) return { grade: "A",  color: "#22c55e" };
+  if (score >= 90) return { grade: "A-", color: "#22c55e" };
+  if (score >= 87) return { grade: "B+", color: "#84cc16" };
+  if (score >= 83) return { grade: "B",  color: "#eab308" };
+  if (score >= 80) return { grade: "B-", color: "#eab308" };
+  if (score >= 77) return { grade: "C+", color: "#f97316" };
+  if (score >= 73) return { grade: "C",  color: "#f97316" };
+  if (score >= 70) return { grade: "C-", color: "#f97316" };
+  if (score >= 67) return { grade: "D+", color: "#ef4444" };
+  if (score >= 63) return { grade: "D",  color: "#ef4444" };
+  if (score >= 60) return { grade: "D-", color: "#ef4444" };
+  return { grade: "F", color: "#ef4444" };
 }
 
 // ── Severity Badge ──
@@ -507,10 +477,6 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
       setQaLoading(false);
     }
   };
-
-  const passCount = results?.items?.filter(i => i.status === "pass").length || 0;
-  const failCount = results?.items?.filter(i => i.status === "fail").length || 0;
-  const warnCount = results?.items?.filter(i => i.status === "warning").length || 0;
 
   if (!unlocked) {
     return (
@@ -770,48 +736,6 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
             <p style={{ color: "#64748b", fontSize: 13, marginBottom: 24 }}>
               {uploadedFile?.name} · {CHECKLISTS[selectedType]?.title}</p>
 
-            {/* Score Cards */}
-            {results.complianceScore !== null && (
-              <div style={{ display: "flex", gap: 24, marginBottom: 32, flexWrap: "wrap",
-                justifyContent: "center" }}>
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 16,
-                  padding: 24, flex: "1 1 200px", maxWidth: 240, textAlign: "center" }}>
-                  <ScoreGauge score={results.complianceScore} label="Compliance" />
-                </div>
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 16,
-                  padding: 24, flex: "1 1 200px", maxWidth: 240, textAlign: "center" }}>
-                  <ScoreGauge score={results.riskScore} label="Risk"
-                    color={results.riskScore <= 20 ? "#22c55e" : results.riskScore <= 50 ? "#eab308" : "#ef4444"} />
-                </div>
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 16,
-                  padding: 24, flex: "1 1 200px", maxWidth: 240, display: "flex", flexDirection: "column",
-                  justifyContent: "center", alignItems: "center", gap: 12 }}>
-                  <div style={{ display: "flex", gap: 16 }}>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 28, fontWeight: 700, color: "#4ade80",
-                        fontFamily: "'DM Mono', monospace" }}>{passCount}</div>
-                      <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase",
-                        letterSpacing: 1 }}>Pass</div>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 28, fontWeight: 700, color: "#f87171",
-                        fontFamily: "'DM Mono', monospace" }}>{failCount}</div>
-                      <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase",
-                        letterSpacing: 1 }}>Fail</div>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 28, fontWeight: 700, color: "#fbbf24",
-                        fontFamily: "'DM Mono', monospace" }}>{warnCount}</div>
-                      <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase",
-                        letterSpacing: 1 }}>Warn</div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 11, color: "#64748b", textTransform: "uppercase",
-                    letterSpacing: 1 }}>Item Summary</div>
-                </div>
-              </div>
-            )}
-
             {/* Summary */}
             {results.summary && (
               <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12,
@@ -835,36 +759,10 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
               </div>
             )}
 
-            {/* Detailed Findings */}
-            {results.items?.length > 0 && (
-              <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase",
-                  letterSpacing: 1, marginBottom: 12 }}>Detailed Findings</div>
-                {results.items.map((item, i) => (
-                  <div key={i} style={{ background: "#0f172a", border: "1px solid #1e293b",
-                    borderRadius: 8, padding: 16, marginBottom: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                      <StatusBadge status={item.status} />
-                      <span style={{ fontSize: 10, color: "#475569",
-                        fontFamily: "'DM Mono', monospace" }}>{item.id}</span>
-                      <span style={{ fontSize: 10, color: "#475569",
-                        fontFamily: "'DM Mono', monospace" }}>{item.regulation}</span>
-                    </div>
-                    <div style={{ fontSize: 13, color: "#e2e8f0", marginBottom: 4 }}>{item.finding}</div>
-                    {item.recommendation && item.status !== "pass" && (
-                      <div style={{ fontSize: 12, color: "#94a3b8", fontStyle: "italic", marginTop: 4 }}>
-                        💡 {item.recommendation}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Recommendations */}
+            {/* Recommended Actions */}
             {results.recommendations?.length > 0 && (
               <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12,
-                padding: 20 }}>
+                padding: 20, marginBottom: 24 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#22c55e", textTransform: "uppercase",
                   letterSpacing: 1, marginBottom: 10 }}>Recommended Actions</div>
                 {results.recommendations.map((rec, i) => (
@@ -877,10 +775,26 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
               </div>
             )}
 
+            {/* Compliance Grade */}
+            {results.complianceScore != null && (() => {
+              const { grade, color } = scoreToGrade(results.complianceScore);
+              return (
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 16,
+                  padding: 32, textAlign: "center" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase",
+                    letterSpacing: 1, marginBottom: 16 }}>Compliance Grade</div>
+                  <div style={{ fontSize: 96, fontWeight: 700, color, lineHeight: 1,
+                    fontFamily: "'DM Mono', monospace", marginBottom: 12 }}>{grade}</div>
+                  <div style={{ fontSize: 13, color: "#64748b" }}>Score: {results.complianceScore} / 100</div>
+                </div>
+              );
+            })()}
+
             {/* Raw response fallback */}
-            {results.rawResponse && !results.items?.length && (
+            {results.rawResponse && (
               <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12,
-                padding: 20, whiteSpace: "pre-wrap", fontSize: 13, lineHeight: 1.7, color: "#cbd5e1" }}>
+                padding: 20, whiteSpace: "pre-wrap", fontSize: 13, lineHeight: 1.7, color: "#cbd5e1",
+                marginTop: 24 }}>
                 {results.rawResponse}
               </div>
             )}
