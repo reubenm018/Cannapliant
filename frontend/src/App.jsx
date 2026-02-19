@@ -401,10 +401,7 @@ ${checklistText}
 Evaluate every item on the checklist against this label. Return ONLY valid JSON matching the schema described in the system prompt. No markdown, no backticks, just raw JSON.`
       });
 
-      const apiUrl = import.meta.env.VITE_API_URL
-        ? `${import.meta.env.VITE_API_URL}/api/messages`
-        : '/api/messages';
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/messages', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -446,10 +443,7 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
     setQaLoading(true);
     setQaResponse(null);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL
-        ? `${import.meta.env.VITE_API_URL}/api/messages`
-        : '/api/messages';
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/messages', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
