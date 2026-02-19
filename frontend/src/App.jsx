@@ -335,6 +335,20 @@ export default function ComplianceChecker() {
   const [qaResponse, setQaResponse] = useState(null);
   const [qaLoading, setQaLoading] = useState(false);
   const fileRef = useRef(null);
+  const [unlocked, setUnlocked] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+
+  const PASSWORD = 'finalbell2024';
+
+  const handleUnlock = () => {
+    if (passwordInput === PASSWORD) {
+      setUnlocked(true);
+    } else {
+      setPasswordError(true);
+      setTimeout(() => setPasswordError(false), 2000);
+    }
+  };
 
   useEffect(() => {
     fetch('https://cannapliant.up.railway.app/health')
@@ -497,6 +511,62 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
   const passCount = results?.items?.filter(i => i.status === "pass").length || 0;
   const failCount = results?.items?.filter(i => i.status === "fail").length || 0;
   const warnCount = results?.items?.filter(i => i.status === "warning").length || 0;
+
+  if (!unlocked) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#0a1628',
+      }}>
+        <div style={{
+          background: '#1a2740',
+          padding: '40px',
+          borderRadius: '12px',
+          textAlign: 'center',
+          width: '320px',
+        }}>
+          <h2 style={{ color: '#fff', marginBottom: '8px' }}>Cannapliant</h2>
+          <p style={{ color: '#aaa', marginBottom: '24px', fontSize: '14px' }}>Enter password to continue</p>
+          <input
+            type="password"
+            value={passwordInput}
+            onChange={(e) => setPasswordInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
+            placeholder="Password"
+            style={{
+              width: '100%',
+              padding: '10px',
+              borderRadius: '6px',
+              border: passwordError ? '1px solid #e74c3c' : '1px solid #333',
+              background: '#0a1628',
+              color: '#fff',
+              marginBottom: '12px',
+              boxSizing: 'border-box',
+            }}
+          />
+          {passwordError && <p style={{ color: '#e74c3c', fontSize: '13px', marginBottom: '12px' }}>Incorrect password</p>}
+          <button
+            onClick={handleUnlock}
+            style={{
+              width: '100%',
+              padding: '10px',
+              borderRadius: '6px',
+              background: '#2ecc71',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            Enter
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#e2e8f0",
