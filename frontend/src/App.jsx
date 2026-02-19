@@ -427,7 +427,7 @@ ${checklistText}
 Evaluate every item on the checklist against this label. Return ONLY valid JSON matching the schema described in the system prompt. No markdown, no backticks, just raw JSON.`
       });
 
-      const response = await fetch('/api/messages', {
+      const response = await fetch('https://cannapliant-production.up.railway.app/api/messages', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -469,7 +469,7 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
     setQaLoading(true);
     setQaResponse(null);
     try {
-      const response = await fetch('/api/messages', {
+      const response = await fetch('https://cannapliant-production.up.railway.app/api/messages', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
