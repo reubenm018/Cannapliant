@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 const PRODUCT_TYPES = [
   { id: "edibles", label: "Edibles", icon: "🍪", desc: "Cannabis-infused edible products" },
@@ -335,6 +335,11 @@ export default function ComplianceChecker() {
   const [qaResponse, setQaResponse] = useState(null);
   const [qaLoading, setQaLoading] = useState(false);
   const fileRef = useRef(null);
+
+  useEffect(() => {
+    fetch('https://cannapliant.up.railway.app/health')
+      .catch(() => {});
+  }, []);
 
   const handleFileUpload = useCallback((e) => {
     const file = e.target.files?.[0];
