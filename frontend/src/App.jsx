@@ -353,6 +353,25 @@ export default function ComplianceChecker() {
     }
   }, []);
 
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxWidth = 1920;
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.8);
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    });
+  };
+
   const runAnalysis = async () => {
     if (!selectedType || !uploadedFile) return;
     setAnalyzing(true);
@@ -369,14 +388,21 @@ export default function ComplianceChecker() {
       let contentParts = [];
 
       if (uploadedFile.type.startsWith("image/") || uploadedFile.type === "application/pdf") {
+        let fileToEncode = uploadedFile;
+        let mediaType = uploadedFile.type === "application/pdf" ? "application/pdf" : "image/jpeg";
+
+        if (uploadedFile.type.startsWith("image/")) {
+          fileToEncode = await compressImage(uploadedFile);
+        } else if (uploadedFile.size > 3145728) {
+          setError("For best results, use PDFs under 3MB or upload an image instead");
+        }
+
         const base64 = await new Promise((res, rej) => {
           const r = new FileReader();
           r.onload = () => res(r.result.split(",")[1]);
           r.onerror = () => rej(new Error("Failed to read file"));
-          r.readAsDataURL(uploadedFile);
+          r.readAsDataURL(fileToEncode);
         });
-
-        const mediaType = uploadedFile.type === "application/pdf" ? "application/pdf" : uploadedFile.type;
 
         if (uploadedFile.type === "application/pdf") {
           contentParts.push({
