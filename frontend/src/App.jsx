@@ -1038,56 +1038,114 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
                   <strong style={{ color: "#22c55e" }}>{labelType}</strong> using the{" "}
                   {CHECKLISTS[selectedType].title} checklist.</p>
 
-                <div onClick={() => fileRef.current?.click()}
-                  style={{ border: "2px dashed #334155", borderRadius: 12, padding: 40,
-                    textAlign: "center", cursor: "pointer", background: "#0f172a",
-                    transition: "border-color 0.15s" }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = "#22c55e"}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = "#334155"}>
-                  <input ref={fileRef} type="file" accept="image/*,.pdf" onChange={handleFileUpload}
-                    style={{ display: "none" }} />
-                  {filePreview ? (
-                    <div>
-                      {filePreview.type === "image" && (
-                        <img src={filePreview.data} alt="Label preview"
-                          style={{ maxHeight: 200, borderRadius: 8, marginBottom: 12 }} />
-                      )}
-                      {filePreview.type === "pdf" && (
-                        <div style={{ fontSize: 48, marginBottom: 8 }}>📄</div>
-                      )}
-                      <div style={{ color: "#22c55e", fontWeight: 600, fontSize: 14 }}>
-                        {uploadedFile?.name}</div>
-                      <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>
-                        Click to change file</div>
+                {analyzing ? (
+                  /* ── IN/OUT bin loader ── */
+                  <div style={{ border: "2px dashed #334155", borderRadius: 12, padding: 40,
+                    textAlign: "center", background: "#0f172a", minHeight: 200,
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    justifyContent: "center", gap: 28 }}>
+                    <div style={{ position: "relative", width: 220, height: 80 }}>
+                      {/* IN bin */}
+                      <div style={{ position: "absolute", left: 0, bottom: 0, width: 72, height: 56,
+                        border: "2px solid #334155", borderTop: "none", borderRadius: "0 0 6px 6px",
+                        background: "#0a1628", display: "flex", alignItems: "flex-end",
+                        justifyContent: "center", paddingBottom: 6 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b",
+                          letterSpacing: 2, fontFamily: "'DM Mono', monospace" }}>IN</span>
+                      </div>
+                      {/* IN bin top rim */}
+                      <div style={{ position: "absolute", left: -4, bottom: 52, width: 80, height: 6,
+                        background: "#334155", borderRadius: 3 }} />
+
+                      {/* OUT bin */}
+                      <div style={{ position: "absolute", right: 0, bottom: 0, width: 72, height: 56,
+                        border: "2px solid #22c55e40", borderTop: "none", borderRadius: "0 0 6px 6px",
+                        background: "#0a1628", display: "flex", alignItems: "flex-end",
+                        justifyContent: "center", paddingBottom: 6 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: "#22c55e80",
+                          letterSpacing: 2, fontFamily: "'DM Mono', monospace" }}>OUT</span>
+                      </div>
+                      {/* OUT bin top rim */}
+                      <div style={{ position: "absolute", right: -4, bottom: 52, width: 80, height: 6,
+                        background: "#22c55e40", borderRadius: 3 }} />
+
+                      {/* Sliding paper */}
+                      <div style={{ position: "absolute", left: 14, bottom: 58,
+                        animation: "paperSlide 2s ease-in-out infinite" }}>
+                        <div style={{ width: 44, height: 34, background: "#1e293b",
+                          border: "1px solid #475569", borderRadius: 3, position: "relative",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.4)" }}>
+                          {/* paper lines */}
+                          <div style={{ position: "absolute", top: 7, left: 6, right: 6, height: 2,
+                            background: "#334155", borderRadius: 1 }} />
+                          <div style={{ position: "absolute", top: 13, left: 6, right: 10, height: 2,
+                            background: "#334155", borderRadius: 1 }} />
+                          <div style={{ position: "absolute", top: 19, left: 6, right: 8, height: 2,
+                            background: "#22c55e30", borderRadius: 1 }} />
+                          {/* folded corner */}
+                          <div style={{ position: "absolute", top: 0, right: 0, width: 0, height: 0,
+                            borderLeft: "7px solid #0a1628", borderBottom: "7px solid transparent" }} />
+                        </div>
+                      </div>
                     </div>
-                  ) : (
-                    <div>
-                      <div style={{ fontSize: 48, marginBottom: 8, opacity: 0.5 }}>📤</div>
-                      <div style={{ color: "#94a3b8", fontSize: 14 }}>
-                        Drop a file or click to upload</div>
-                      <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>
-                        PDF or image files accepted</div>
+
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#94a3b8",
+                        letterSpacing: 0.5, fontFamily: "'DM Sans', sans-serif" }}>
+                        Analyzing label...
+                      </div>
+                      <div style={{ fontSize: 11, color: "#475569", fontFamily: "'DM Mono', monospace" }}>
+                        This may take 15–30 seconds
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                  <div onClick={() => fileRef.current?.click()}
+                    style={{ border: "2px dashed #334155", borderRadius: 12, padding: 40,
+                      textAlign: "center", cursor: "pointer", background: "#0f172a",
+                      transition: "border-color 0.15s" }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = "#22c55e"}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = "#334155"}>
+                    <input ref={fileRef} type="file" accept="image/*,.pdf" onChange={handleFileUpload}
+                      style={{ display: "none" }} />
+                    {filePreview ? (
+                      <div>
+                        {filePreview.type === "image" && (
+                          <img src={filePreview.data} alt="Label preview"
+                            style={{ maxHeight: 200, borderRadius: 8, marginBottom: 12 }} />
+                        )}
+                        {filePreview.type === "pdf" && (
+                          <div style={{ fontSize: 48, marginBottom: 8 }}>📄</div>
+                        )}
+                        <div style={{ color: "#22c55e", fontWeight: 600, fontSize: 14 }}>
+                          {uploadedFile?.name}</div>
+                        <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>
+                          Click to change file</div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ fontSize: 48, marginBottom: 8, opacity: 0.5 }}>📤</div>
+                        <div style={{ color: "#94a3b8", fontSize: 14 }}>
+                          Drop a file or click to upload</div>
+                        <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>
+                          PDF or image files accepted</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {uploadedFile && (
+                    <div style={{ marginTop: 20, textAlign: "center" }}>
+                      <button onClick={runAnalysis}
+                        style={{ padding: "14px 40px", borderRadius: 10, border: "none",
+                          background: "linear-gradient(135deg, #22c55e, #16a34a)",
+                          color: "#fff", fontWeight: 700, fontSize: 16, cursor: "pointer",
+                          letterSpacing: 0.3, boxShadow: "0 4px 24px #22c55e30" }}>
+                        Run Compliance Check
+                      </button>
                     </div>
                   )}
-                </div>
-
-                {uploadedFile && (
-                  <div style={{ marginTop: 20, textAlign: "center" }}>
-                    <button onClick={runAnalysis} disabled={analyzing}
-                      style={{ padding: "14px 40px", borderRadius: 10, border: "none",
-                        background: analyzing ? "#1e293b" : "linear-gradient(135deg, #22c55e, #16a34a)",
-                        color: "#fff", fontWeight: 700, fontSize: 16, cursor: "pointer",
-                        letterSpacing: 0.3, boxShadow: analyzing ? "none" : "0 4px 24px #22c55e30" }}>
-                      {analyzing ? (
-                        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ display: "inline-block", width: 16, height: 16, border: "2px solid #fff",
-                            borderTopColor: "transparent", borderRadius: "50%",
-                            animation: "spin 0.8s linear infinite" }} />
-                          Analyzing Label...
-                        </span>
-                      ) : "Run Compliance Check"}
-                    </button>
-                  </div>
+                  </>
                 )}
 
                 {error && (
@@ -1359,6 +1417,14 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes paperSlide {
+          0%   { transform: translateX(0px);   opacity: 1; }
+          45%  { transform: translateX(130px);  opacity: 1; }
+          55%  { transform: translateX(130px);  opacity: 0; }
+          56%  { transform: translateX(0px);    opacity: 0; }
+          70%  { transform: translateX(0px);    opacity: 1; }
+          100% { transform: translateX(0px);    opacity: 1; }
+        }
         * { box-sizing: border-box; margin: 0; }
         ::selection { background: #22c55e40; }
         ::-webkit-scrollbar { width: 8px; }
