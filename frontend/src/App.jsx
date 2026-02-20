@@ -215,6 +215,66 @@ const CHECKLISTS = {
   }
 };
 
+// ── Regulation References ──
+const REGULATION_REFS = {
+  '§17302': {
+    title: 'Packaging Requirements',
+    description: 'Cannabis products must be sold in child-resistant, tamper-evident, and resealable (if multi-dose) packaging. Packaging must not be attractive to persons under 21.',
+  },
+  '§17304': {
+    title: 'Adult-Use Cannabinoid Limits',
+    description: 'For adult-use edibles: maximum 10mg THC per serving and 100mg THC per package. Products exceeding these limits must be labeled "FOR MEDICAL USE ONLY".',
+  },
+  '§17402': {
+    title: 'General Labeling Requirements',
+    description: 'All required label information must be in English, easy to read, unobstructed and conspicuous, and placed on the outermost packaging.',
+  },
+  '§17403': {
+    title: 'Nonmanufactured Cannabis Primary Panel',
+    description: 'For flower/non-infused pre-rolls: product identity, net weight (metric + US customary), universal symbol (≥0.5"), UID, cultivator/packager name and contact info, packaging date, and government warning (PACKAGE version) in bold caps.',
+  },
+  '§17404': {
+    title: 'Manufactured Cannabis Primary Panel',
+    description: 'For manufactured cannabis products: product identity, universal symbol (≥0.5"), net weight (metric + US customary); all text must be at least 6pt font.',
+  },
+  '§17405': {
+    title: 'Edible Cannabis Products – Primary Panel',
+    description: 'Edibles must display "cannabis-infused" or "cannabis infused" in bold immediately above the product identity statement, in a larger text size than the identity.',
+  },
+  '§17406': {
+    title: 'Manufactured Cannabis Informational Panel',
+    description: 'Must include: licensee name and contact, packaging date, government warning (PRODUCT version, bold caps), "FOR MEDICAL USE ONLY" if THC exceeds §17304 limits, ingredients in descending order by predominance, allergens, artificial colorings, nutritional info for edibles (sodium/sugar/carbs/total fat per serving), instructions for use, UID, batch/lot number, refrigeration notice if applicable; all text min 6pt font.',
+  },
+  '§17407': {
+    title: 'Cannabinoid Content Labeling',
+    description: 'Cannabinoid content must appear on primary or informational panel. Edibles: mg/serving + mg/package. Vapes/concentrates: mg/package. Flower: percentage. Amounts <2mg must be stated as "<2 mg". Any cannabinoid ≥5% of total must be listed. Labeled amounts must match COA within ±10%.',
+  },
+  '§17408': {
+    title: 'Labeling Restrictions',
+    description: 'Prohibited: misleading California city/county names, content attractive to individuals under 21, false or misleading health claims, pictures of edible products on exterior packaging, false or misleading information of any kind, "organic"/"organix" claims without USDA NOP authorization for cannabis, "OCal" claims without B&P §26062 compliance, appellation of origin claims without B&P §26063 compliance.',
+  },
+  '§17409': {
+    title: 'Anticipated Effects (Optional)',
+    description: 'Anticipated effects statements are OPTIONAL. If used, they must describe physiological effects only (e.g., "may cause drowsiness") and NOT health benefit or therapeutic claims. The licensee must have substantiation that the information is truthful and not misleading. Must appear on informational panel or supplemental labeling, not the primary panel.',
+  },
+  '§17410': {
+    title: 'Universal Symbol Requirements',
+    description: 'The California universal cannabis symbol must be black or white on a contrasting background, not altered or cropped, and at least 0.5" in height. Exception: vape cartridges and integrated vaporizers may use a symbol of at least 0.25" in height.',
+  },
+  '§15307.1': {
+    title: 'COA Variance Tolerance',
+    description: 'Labeled cannabinoid amounts may vary from Certificate of Analysis (COA) test results by no more than ±10%.',
+  },
+  'CA Prop 65': {
+    title: 'California Proposition 65 Warning',
+    description: 'California Prop 65 requires specific health warnings on cannabis products. The warning must include the required text, a triangle warning symbol (⚠), and the symbol must be at least the same height as the word "WARNING". Text varies by product type: edibles reference ingestion, vapes/concentrates reference vaping/dabbing, and flower/pre-rolls reference smoking.',
+  },
+  'LADCR Reg 5': {
+    title: 'LADCR Operating Standards',
+    description: 'Los Angeles Department of Cannabis Regulation Operating Standards prohibit deceptive, false, or misleading statements on product labels and customer-facing documents (Reg 5(A)(1)(xi)). Products must be fully labeled (including cannabinoid content) before leaving manufacturing premises for distribution or delivery (Reg 5(D)(3)). LADCR enforces all State DCC labeling requirements (Reg 5(A)(1)(v) & 5(A)(1)(ix)).',
+  },
+};
+
 const SYSTEM_PROMPT = `You are a cannabis regulatory compliance expert specializing in California Department of Cannabis Control (DCC) regulations and Los Angeles Department of Cannabis Regulation (LADCR) rules.
 
 Your job is to analyze cannabis product packaging and labels for compliance with:
@@ -239,28 +299,30 @@ KEY REGULATORY REQUIREMENTS (DCC Jan 1, 2026 revision):
 
 When analyzing a label image or description, evaluate EVERY checklist item. For each:
 - Determine PASS, FAIL, or UNABLE TO VERIFY
-- Cite the specific regulation
+- Cite the specific regulation using its EXACT section code (e.g. §17408(a)(1), §17407(b)(1), CA Prop 65, LADCR Reg 5(A)(1)(xi))
 - Explain why it fails and how to fix it
 - Assess risk level
 - For §17409 Anticipated Effects items: if no anticipated effects statement is present on the label, mark as PASS (it's optional). Only flag if a statement IS present and violates the rule.
 
 Output your analysis as JSON with this structure:
 {
-  "summary": "Brief overall assessment",
+  "summary": "2-3 sentence executive summary of overall compliance status and key findings",
   "items": [
     {
       "id": "checklist item id",
       "status": "pass" | "fail" | "warning" | "unverifiable",
       "finding": "What was found",
       "recommendation": "How to fix (if fail/warning)",
-      "regulation": "Specific regulation cite"
+      "regulation": "Exact regulation citation code (e.g. §17408(a)(1), §17407(b)(1), CA Prop 65, LADCR Reg 5(A)(1)(xi))"
     }
   ],
   "complianceScore": numeric integer 0-100 (the UI converts this to a letter grade),
   "riskScore": 0-100,
-  "criticalIssues": ["list of critical failures"],
-  "recommendations": ["prioritized list of fixes"]
-}`;
+  "criticalIssues": ["Each entry MUST begin with the exact citation code followed by a colon, e.g.: '§17408(a)(2): Content appears attractive to minors — remove cartoon imagery'"],
+  "recommendations": ["Prioritized fixes, each referencing the specific regulation code, e.g.: '§17406(a)(3): Add the required government warning statement in bold caps'"]
+}
+
+IMPORTANT: The "regulation" field for every item MUST contain the exact DCC section number (e.g. §17408(a)(1)), Prop 65 citation, or LADCR reference. Every criticalIssues entry MUST start with the citation code followed by a colon and description. Every recommendations entry MUST reference the specific regulation.`;
 
 // ── Letter Grade Helper ──
 function scoreToGrade(score) {
@@ -292,6 +354,85 @@ function SeverityBadge({ severity }) {
   );
 }
 
+// ── Regulation Reference Helpers ──
+function extractBaseSection(citation) {
+  if (!citation) return null;
+  if (citation.includes('Prop 65')) return 'CA Prop 65';
+  if (citation.includes('LADCR')) return 'LADCR Reg 5';
+  const match = citation.match(/§(\d+)/);
+  return match ? `§${match[1]}` : null;
+}
+
+function RegulationModal({ citation, onClose }) {
+  const base = extractBaseSection(citation);
+  const ref = base ? REGULATION_REFS[base] : null;
+  return (
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 1000, padding: 24,
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: '#1a2740', border: '1px solid #334155', borderRadius: 12,
+        padding: 28, maxWidth: 460, width: '100%', position: 'relative',
+      }}>
+        <button onClick={onClose} style={{
+          position: 'absolute', top: 12, right: 14, background: 'transparent',
+          border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 22, lineHeight: 1,
+        }}>×</button>
+        <div style={{
+          fontSize: 11, fontWeight: 600, color: '#22c55e', textTransform: 'uppercase',
+          letterSpacing: 1, marginBottom: 6, fontFamily: "'DM Mono', monospace",
+        }}>{citation}</div>
+        {ref ? (
+          <>
+            <div style={{ fontSize: 17, fontWeight: 700, color: '#f8fafc', marginBottom: 10 }}>
+              {ref.title}
+            </div>
+            <div style={{ fontSize: 13, lineHeight: 1.7, color: '#cbd5e1', marginBottom: 20 }}>
+              {ref.description}
+            </div>
+          </>
+        ) : (
+          <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 20, lineHeight: 1.6 }}>
+            This citation refers to an internal standard or a regulation section not in the quick-reference library.
+          </div>
+        )}
+        <a
+          href="https://cannabis.ca.gov/cannabis-laws/dcc-regulations/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '9px 18px', borderRadius: 7,
+            background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+            color: '#fff', textDecoration: 'none', fontSize: 13, fontWeight: 600,
+          }}
+        >
+          View Full Regulation ↗
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function CitationLink({ citation, onOpen }) {
+  if (!citation) return null;
+  return (
+    <button
+      onClick={() => onOpen(citation)}
+      style={{
+        background: 'transparent', border: '1px solid #334155', borderRadius: 4,
+        color: '#22c55e', fontSize: 10, fontFamily: "'DM Mono', monospace",
+        cursor: 'pointer', padding: '1px 6px', marginLeft: 6, fontWeight: 600,
+        verticalAlign: 'middle',
+      }}
+    >
+      {citation}
+    </button>
+  );
+}
+
 // ── Main App ──
 export default function ComplianceChecker() {
   const [selectedType, setSelectedType] = useState(null);
@@ -308,6 +449,13 @@ export default function ComplianceChecker() {
   const [unlocked, setUnlocked] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState(false);
+  const [regModal, setRegModal] = useState(null);
+  const [reportId] = useState(() => {
+    const d = new Date();
+    const ds = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+    return `CP-${ds}-${String(Math.floor(Math.random() * 900) + 100)}`;
+  });
+  const [showPassed, setShowPassed] = useState(false);
 
   const PASSWORD = 'finalbell2024';
 
@@ -476,6 +624,73 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
     } finally {
       setQaLoading(false);
     }
+  };
+
+  const downloadReport = () => {
+    if (!results) return;
+    const d = new Date();
+    const dateStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = d.toLocaleTimeString('en-US');
+    const { grade } = scoreToGrade(results.complianceScore ?? 0);
+    const failItems = results.items?.filter(i => i.status === 'fail') || [];
+    const warnItems = results.items?.filter(i => i.status === 'warning' || i.status === 'unverifiable') || [];
+
+    const lines = [
+      'CANNAPLIANT COMPLIANCE REPORT',
+      '='.repeat(52),
+      `Report ID:    ${reportId}`,
+      `Date:         ${dateStr} at ${timeStr}`,
+      `Product Type: ${CHECKLISTS[selectedType]?.title}`,
+      `File:         ${uploadedFile?.name || 'N/A'}`,
+      '',
+      `OVERALL GRADE: ${grade}${results.complianceScore != null ? ` (${results.complianceScore}/100)` : ''}`,
+      '',
+      'EXECUTIVE SUMMARY',
+      '-'.repeat(36),
+      results.summary || 'No summary available.',
+      '',
+      `CRITICAL ISSUES (${failItems.length})`,
+      '-'.repeat(36),
+      ...(failItems.length > 0
+        ? failItems.map((item, i) => {
+            const checkItem = results.checklist?.find(c => c.id === item.id);
+            const text = item.finding || checkItem?.text || 'Compliance failure';
+            const citation = item.regulation ? ` [${item.regulation}]` : '';
+            const fix = item.recommendation ? `\n   Fix: ${item.recommendation}` : '';
+            return `${i + 1}. ${text}${citation}${fix}`;
+          })
+        : ['No critical issues identified.']),
+      '',
+      `WARNINGS (${warnItems.length})`,
+      '-'.repeat(36),
+      ...(warnItems.length > 0
+        ? warnItems.map((item, i) => {
+            const checkItem = results.checklist?.find(c => c.id === item.id);
+            const text = item.finding || checkItem?.text || 'Warning';
+            const citation = item.regulation ? ` [${item.regulation}]` : '';
+            const note = item.recommendation ? `\n   Note: ${item.recommendation}` : '';
+            return `${i + 1}. ${text}${citation}${note}`;
+          })
+        : ['No warnings identified.']),
+      '',
+      'RECOMMENDED ACTIONS',
+      '-'.repeat(36),
+      ...(results.recommendations?.length > 0
+        ? results.recommendations.map((r, i) => `${i + 1}. ${r}`)
+        : ['No recommendations.']),
+      '',
+      '='.repeat(52),
+      'Generated by Cannapliant | DCC (Jan 2026) | LADCR (Oct 2025)',
+    ];
+
+    const reportText = lines.join('\n');
+    const blob = new Blob([reportText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cannapliant-report-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (!unlocked) {
@@ -725,16 +940,26 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
         {/* Results */}
         {results && (
           <div>
-            <button onClick={() => { setResults(null); setUploadedFile(null); setFilePreview(null); }}
-              style={{ marginBottom: 20, padding: "8px 16px", borderRadius: 6, border: "1px solid #334155",
-                background: "transparent", color: "#94a3b8", cursor: "pointer", fontSize: 13 }}>
-              ← New Analysis
-            </button>
+            {/* Regulation Modal */}
+            {regModal && <RegulationModal citation={regModal} onClose={() => setRegModal(null)} />}
 
-            <h2 style={{ fontSize: 24, fontWeight: 700, color: "#f8fafc", marginBottom: 4 }}>
-              Compliance Report</h2>
-            <p style={{ color: "#64748b", fontSize: 13, marginBottom: 24 }}>
-              {uploadedFile?.name} · {CHECKLISTS[selectedType]?.title}</p>
+            {/* Action Bar */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+              <button
+                onClick={() => { setResults(null); setUploadedFile(null); setFilePreview(null); setShowPassed(false); }}
+                style={{ padding: "8px 16px", borderRadius: 6, border: "1px solid #334155",
+                  background: "transparent", color: "#94a3b8", cursor: "pointer", fontSize: 13 }}
+              >
+                ← New Analysis
+              </button>
+              <button
+                onClick={downloadReport}
+                style={{ padding: "8px 20px", borderRadius: 6, border: "1px solid #22c55e",
+                  background: "transparent", color: "#22c55e", cursor: "pointer", fontSize: 13, fontWeight: 600 }}
+              >
+                ↓ Download Report
+              </button>
+            </div>
 
             {/* Uploaded Label Preview */}
             {filePreview && (
@@ -759,28 +984,177 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
               </div>
             )}
 
-            {/* Summary */}
+            {/* Report Header */}
+            <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12,
+              padding: "16px 20px", marginBottom: 24 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: "#f8fafc", marginBottom: 12 }}>
+                Compliance Report
+              </h2>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "8px 24px" }}>
+                <div>
+                  <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Report ID</div>
+                  <div style={{ fontSize: 13, color: "#22c55e", fontFamily: "'DM Mono', monospace", fontWeight: 600 }}>{reportId}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Date</div>
+                  <div style={{ fontSize: 13, color: "#cbd5e1" }}>{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Product Type</div>
+                  <div style={{ fontSize: 13, color: "#cbd5e1" }}>{CHECKLISTS[selectedType]?.title}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>File</div>
+                  <div style={{ fontSize: 13, color: "#cbd5e1", wordBreak: "break-all" }}>{uploadedFile?.name}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Overall Grade */}
+            {results.complianceScore != null && (() => {
+              const { grade, color } = scoreToGrade(results.complianceScore);
+              return (
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 16,
+                  padding: 32, textAlign: "center", marginBottom: 24 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase",
+                    letterSpacing: 1, marginBottom: 16 }}>Overall Compliance Grade</div>
+                  <div style={{ fontSize: 96, fontWeight: 700, color, lineHeight: 1,
+                    fontFamily: "'DM Mono', monospace", marginBottom: 12 }}>{grade}</div>
+                  <div style={{ fontSize: 13, color: "#64748b" }}>Score: {results.complianceScore} / 100</div>
+                </div>
+              );
+            })()}
+
+            {/* Executive Summary */}
             {results.summary && (
               <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12,
                 padding: 20, marginBottom: 24 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase",
-                  letterSpacing: 1, marginBottom: 8 }}>Summary</div>
+                  letterSpacing: 1, marginBottom: 8 }}>Executive Summary</div>
                 <div style={{ fontSize: 14, lineHeight: 1.7, color: "#cbd5e1" }}>{results.summary}</div>
               </div>
             )}
 
             {/* Critical Issues */}
-            {results.criticalIssues?.length > 0 && (
-              <div style={{ background: "#350a0a", border: "1px solid #7f1d1d", borderRadius: 12,
-                padding: 20, marginBottom: 24 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#f87171", textTransform: "uppercase",
-                  letterSpacing: 1, marginBottom: 10 }}>⚠ Critical Issues</div>
-                {results.criticalIssues.map((issue, i) => (
-                  <div key={i} style={{ fontSize: 13, color: "#fca5a5", padding: "4px 0",
-                    lineHeight: 1.5 }}>• {issue}</div>
-                ))}
-              </div>
-            )}
+            {(() => {
+              const failItems = results.items?.filter(i => i.status === 'fail') || [];
+              if (failItems.length === 0) return null;
+              return (
+                <div style={{ background: "#350a0a", border: "1px solid #7f1d1d", borderRadius: 12,
+                  padding: 20, marginBottom: 24 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#f87171", textTransform: "uppercase",
+                    letterSpacing: 1, marginBottom: 14 }}>⚠ Critical Issues ({failItems.length})</div>
+                  {failItems.map((item, i) => {
+                    const checkItem = results.checklist?.find(c => c.id === item.id);
+                    return (
+                      <div key={item.id || i} style={{ padding: "10px 0",
+                        borderBottom: i < failItems.length - 1 ? "1px solid #7f1d1d40" : "none" }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 4 }}>
+                          <span style={{ color: "#ef4444", fontWeight: 700, flexShrink: 0, fontSize: 14 }}>✕</span>
+                          <div style={{ flex: 1 }}>
+                            <span style={{ fontSize: 13, color: "#fca5a5", lineHeight: 1.5 }}>
+                              {item.finding || checkItem?.text || 'Compliance failure'}
+                            </span>
+                            {item.regulation && (
+                              <CitationLink citation={item.regulation} onOpen={setRegModal} />
+                            )}
+                          </div>
+                        </div>
+                        {item.recommendation && (
+                          <div style={{ marginLeft: 22, fontSize: 12, color: "#f87171", lineHeight: 1.5 }}>
+                            Fix: {item.recommendation}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* Warnings */}
+            {(() => {
+              const warnItems = results.items?.filter(i => i.status === 'warning' || i.status === 'unverifiable') || [];
+              if (warnItems.length === 0) return null;
+              return (
+                <div style={{ background: "#1c1200", border: "1px solid #78350f", borderRadius: 12,
+                  padding: 20, marginBottom: 24 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#fbbf24", textTransform: "uppercase",
+                    letterSpacing: 1, marginBottom: 14 }}>⚡ Warnings ({warnItems.length})</div>
+                  {warnItems.map((item, i) => {
+                    const checkItem = results.checklist?.find(c => c.id === item.id);
+                    return (
+                      <div key={item.id || i} style={{ padding: "10px 0",
+                        borderBottom: i < warnItems.length - 1 ? "1px solid #78350f40" : "none" }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 4 }}>
+                          <span style={{ color: "#f59e0b", fontWeight: 700, flexShrink: 0, fontSize: 14 }}>!</span>
+                          <div style={{ flex: 1 }}>
+                            <span style={{ fontSize: 13, color: "#fde68a", lineHeight: 1.5 }}>
+                              {item.finding || checkItem?.text || (item.status === 'unverifiable' ? 'Unable to verify' : 'Needs attention')}
+                            </span>
+                            {item.regulation && (
+                              <CitationLink citation={item.regulation} onOpen={setRegModal} />
+                            )}
+                          </div>
+                        </div>
+                        {item.recommendation && (
+                          <div style={{ marginLeft: 22, fontSize: 12, color: "#fbbf24", lineHeight: 1.5 }}>
+                            Note: {item.recommendation}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* Passed Items (collapsible) */}
+            {(() => {
+              const passItems = results.items?.filter(i => i.status === 'pass') || [];
+              if (passItems.length === 0) return null;
+              return (
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12,
+                  marginBottom: 24, overflow: "hidden" }}>
+                  <button
+                    onClick={() => setShowPassed(s => !s)}
+                    style={{ width: "100%", padding: "14px 20px", background: "transparent", border: "none",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      cursor: "pointer" }}
+                  >
+                    <span style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase",
+                      letterSpacing: 1, color: "#22c55e" }}>
+                      ✓ Passed Items ({passItems.length})
+                    </span>
+                    <span style={{ fontSize: 12, color: "#64748b" }}>
+                      {showPassed ? "▲ Collapse" : "▼ Expand"}
+                    </span>
+                  </button>
+                  {showPassed && (
+                    <div style={{ padding: "0 20px 16px" }}>
+                      {passItems.map((item, i) => {
+                        const checkItem = results.checklist?.find(c => c.id === item.id);
+                        return (
+                          <div key={item.id || i} style={{ display: "flex", alignItems: "flex-start", gap: 8,
+                            padding: "8px 0",
+                            borderBottom: i < passItems.length - 1 ? "1px solid #1e293b" : "none" }}>
+                            <span style={{ color: "#22c55e", fontWeight: 700, flexShrink: 0, fontSize: 14 }}>✓</span>
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.5 }}>
+                                {checkItem?.text || item.finding || 'Passed'}
+                              </span>
+                              {item.regulation && (
+                                <CitationLink citation={item.regulation} onOpen={setRegModal} />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Recommended Actions */}
             {results.recommendations?.length > 0 && (
@@ -797,21 +1171,6 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
                 ))}
               </div>
             )}
-
-            {/* Compliance Grade */}
-            {results.complianceScore != null && (() => {
-              const { grade, color } = scoreToGrade(results.complianceScore);
-              return (
-                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 16,
-                  padding: 32, textAlign: "center" }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase",
-                    letterSpacing: 1, marginBottom: 16 }}>Compliance Grade</div>
-                  <div style={{ fontSize: 96, fontWeight: 700, color, lineHeight: 1,
-                    fontFamily: "'DM Mono', monospace", marginBottom: 12 }}>{grade}</div>
-                  <div style={{ fontSize: 13, color: "#64748b" }}>Score: {results.complianceScore} / 100</div>
-                </div>
-              );
-            })()}
 
             {/* Raw response fallback */}
             {results.rawResponse && (
