@@ -328,6 +328,20 @@ IMPORTANT: The "regulation" field for every item MUST contain the exact DCC sect
 
 WARNING CONSOLIDATION: When the label type is 'Packaging / Strain Label only', do NOT generate individual warnings for every compliance label field. Instead, generate ONE single warning item with this exact finding: 'Compliance label required — ensure it includes: Product Identifier, Ingredients, Batch #, UID #, Package Date, Total THC%, THC mg/pkg, CBD mg/pkg, and Licensee Name + contact info' and regulation '[§17406, §17407]'. Only generate additional individual warnings for things actually visible and questionable on the packaging itself (e.g. youth-appealing design, misleading claims). Keep total warnings to 5 or fewer.`;
 
+const QA_SYSTEM_PROMPT = `You are a California cannabis compliance expert with deep knowledge of DCC regulations (CCR Title 4, Division 19), LADCR rules, and Prop 65.
+
+Answer questions concisely and directly. Format every answer like this:
+- Start with a 2-3 sentence direct answer
+- Follow with a 'Key Requirements' section if applicable (bullet points, max 5 bullets)
+- End with a 'Relevant Regulations' section listing specific citations in this format: [§17404] [§17406] etc.
+
+Rules:
+- Only answer questions related to California cannabis compliance, labeling, packaging, and regulations
+- If asked something outside this scope, politely redirect
+- Always cite the specific regulation section when stating a requirement
+- Be concise — no long paragraphs
+- If unsure, say so and recommend consulting a compliance attorney`;
+
 function buildSystemPrompt(labelType) {
   const labelTypeSection = `
 
@@ -450,6 +464,36 @@ function CitationLink({ citation, onOpen }) {
       {citation}
     </button>
   );
+}
+
+// ── QA Response Renderer ──
+function renderQaResponse(text, onOpen) {
+  if (!text) return null;
+  const citationRegex = /\[(§[^\]]+)\]/g;
+
+  // Collect unique citations for the "Referenced Regulations" row
+  const citations = [];
+  const seen = new Set();
+  let m;
+  while ((m = citationRegex.exec(text)) !== null) {
+    if (!seen.has(m[1])) { seen.add(m[1]); citations.push(m[1]); }
+  }
+
+  // Build inline text with citation chips replaced by spans (keep readable)
+  const parts = [];
+  let lastIndex = 0;
+  citationRegex.lastIndex = 0;
+  let key = 0;
+  while ((m = citationRegex.exec(text)) !== null) {
+    if (m.index > lastIndex) parts.push(<span key={key++}>{text.slice(lastIndex, m.index)}</span>);
+    parts.push(
+      <CitationLink key={key++} citation={m[1]} onOpen={onOpen} />
+    );
+    lastIndex = m.index + m[0].length;
+  }
+  if (lastIndex < text.length) parts.push(<span key={key++}>{text.slice(lastIndex)}</span>);
+
+  return { parts, citations };
 }
 
 // ── Main App ──
@@ -640,7 +684,7 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 2000,
-          system: SYSTEM_PROMPT,
+          system: QA_SYSTEM_PROMPT,
           messages: [{ role: "user", content: question }],
         }),
       });
@@ -881,6 +925,9 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
       </div>
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 24px 60px" }}>
+        {/* Global Regulation Modal (used in both Q&A and results) */}
+        {regModal && <RegulationModal citation={regModal} onClose={() => setRegModal(null)} />}
+
         {/* Q&A Mode */}
         {qaMode && (
           <div>
@@ -902,12 +949,29 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
                 {qaLoading ? "Thinking..." : "Ask"}
               </button>
             </div>
-            {qaResponse && (
-              <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12,
-                padding: 24, whiteSpace: "pre-wrap", fontSize: 14, lineHeight: 1.7, color: "#cbd5e1" }}>
-                {qaResponse}
-              </div>
-            )}
+            {qaResponse && (() => {
+              const rendered = renderQaResponse(qaResponse, setRegModal);
+              return (
+                <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12,
+                  padding: 24 }}>
+                  <div style={{ whiteSpace: "pre-wrap", fontSize: 15, lineHeight: 1.8, color: "#cbd5e1",
+                    fontFamily: "'DM Sans', sans-serif" }}>
+                    {rendered.parts}
+                  </div>
+                  {rendered.citations.length > 0 && (
+                    <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #1e293b" }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase",
+                        letterSpacing: 1, marginBottom: 10 }}>Referenced Regulations</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        {rendered.citations.map((c, i) => (
+                          <CitationLink key={i} citation={c} onOpen={setRegModal} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -1041,10 +1105,7 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
         {/* Results */}
         {results && (
           <div>
-            {/* Regulation Modal */}
-            {regModal && <RegulationModal citation={regModal} onClose={() => setRegModal(null)} />}
-
-            {/* Action Bar */}
+              {/* Action Bar */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
               <button
                 onClick={() => { setResults(null); setUploadedFile(null); setFilePreview(null); setShowPassed(false); setIsPackagingLabel(false); setIsComplianceLabel(false); }}
