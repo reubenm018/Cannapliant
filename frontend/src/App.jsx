@@ -401,8 +401,7 @@ function citationToUrl(citation) {
   if (citation.includes('Prop 65')) return 'https://www.p65warnings.ca.gov/fact-sheets/cannabis-smoke';
   if (citation.includes('LADCR')) return 'https://clkrep.lacity.org/onlinedocs/2020/20-1545-S2_misc_09-24-2021.pdf';
   if (/§26|B&P/.test(citation)) return 'https://leginfo.legislature.ca.gov/faces/codes_displayexpandedbranch.xhtml?tocCode=BPC&division=10.&title=&part=&chapter=&article=&nodetreepath=14';
-  if (/§174/.test(citation)) return 'https://cannabis.ca.gov/wp-content/uploads/sites/2/2024/12/Consolidated-Cannabis-Regulations-2025-01-01.pdf';
-  return 'https://cannabis.ca.gov/cannabis-laws/dcc-regulations/';
+  return 'https://www.cannabis.ca.gov/cannabis-laws/dcc-regulations/';
 }
 
 function RegulationModal({ citation, onClose }) {
