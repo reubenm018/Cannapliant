@@ -396,9 +396,17 @@ function extractBaseSection(citation) {
   return match ? `§${match[1]}` : null;
 }
 
+function citationToUrl(citation) {
+  if (!citation) return 'https://cannabis.ca.gov/cannabis-laws/dcc-regulations/';
+  if (citation.includes('Prop 65')) return 'https://www.p65warnings.ca.gov/';
+  if (citation.includes('LADCR')) return 'https://clkrep.lacity.org/onlinedocs/2020/20-1545-S2_misc_09-24-2021.pdf';
+  return 'https://cannabis.ca.gov/cannabis-laws/dcc-regulations/';
+}
+
 function RegulationModal({ citation, onClose }) {
   const base = extractBaseSection(citation);
   const ref = base ? REGULATION_REFS[base] : null;
+  const url = citationToUrl(citation);
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
@@ -413,10 +421,21 @@ function RegulationModal({ citation, onClose }) {
           position: 'absolute', top: 12, right: 14, background: 'transparent',
           border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 22, lineHeight: 1,
         }}>×</button>
-        <div style={{
-          fontSize: 11, fontWeight: 600, color: '#22c55e', textTransform: 'uppercase',
-          letterSpacing: 1, marginBottom: 6, fontFamily: "'DM Mono', monospace",
-        }}>{citation}</div>
+        <div style={{ marginBottom: 6 }}>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontSize: 11, fontWeight: 600, color: '#22c55e', textTransform: 'uppercase',
+              letterSpacing: 1, fontFamily: "'DM Mono', monospace",
+              textDecoration: 'underline', textUnderlineOffset: 3,
+              textDecorationColor: '#22c55e60', cursor: 'pointer',
+            }}
+          >
+            {citation} ↗
+          </a>
+        </div>
         {ref ? (
           <>
             <div style={{ fontSize: 17, fontWeight: 700, color: '#f8fafc', marginBottom: 10 }}>
@@ -432,7 +451,7 @@ function RegulationModal({ citation, onClose }) {
           </div>
         )}
         <a
-          href="https://cannabis.ca.gov/cannabis-laws/dcc-regulations/"
+          href={url}
           target="_blank"
           rel="noopener noreferrer"
           style={{
