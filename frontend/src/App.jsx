@@ -324,7 +324,9 @@ Output your analysis as JSON with this structure:
   "recommendations": ["Prioritized fixes, each referencing the specific regulation code, e.g.: '§17406(a)(3): Add the required government warning statement in bold caps'"]
 }
 
-IMPORTANT: The "regulation" field for every item MUST contain the exact DCC section number (e.g. §17408(a)(1)), Prop 65 citation, or LADCR reference. Every criticalIssues entry MUST start with the citation code followed by a colon and description. Every recommendations entry MUST reference the specific regulation.`;
+IMPORTANT: The "regulation" field for every item MUST contain the exact DCC section number (e.g. §17408(a)(1)), Prop 65 citation, or LADCR reference. Every criticalIssues entry MUST start with the citation code followed by a colon and description. Every recommendations entry MUST reference the specific regulation.
+
+WARNING CONSOLIDATION: When the label type is 'Packaging / Strain Label only', do NOT generate individual warnings for every compliance label field. Instead, generate ONE single warning item with this exact finding: 'Compliance label required — ensure it includes: Product Identifier, Ingredients, Batch #, UID #, Package Date, Total THC%, THC mg/pkg, CBD mg/pkg, and Licensee Name + contact info' and regulation '[§17406, §17407]'. Only generate additional individual warnings for things actually visible and questionable on the packaging itself (e.g. youth-appealing design, misleading claims). Keep total warnings to 5 or fewer.`;
 
 function buildSystemPrompt(labelType) {
   const labelTypeSection = `
@@ -659,7 +661,14 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
     const gradeColor = (grade === 'A+' || grade === 'A' || grade === 'A-') ? '2ecc71' :
                        (grade.startsWith('B') || grade.startsWith('C')) ? 'f39c12' : 'e74c3c';
     const failItems = results.items?.filter(i => i.status === 'fail') || [];
-    const warnItems = results.items?.filter(i => i.status === 'warning' || i.status === 'unverifiable') || [];
+    const rawWarnItems = results.items?.filter(i => i.status === 'warning' || i.status === 'unverifiable') || [];
+    const seenFindings = new Set();
+    const warnItems = rawWarnItems.filter(item => {
+      const key = item.finding || item.id;
+      if (seenFindings.has(key)) return false;
+      seenFindings.add(key);
+      return true;
+    });
 
     const doc = new Document({
       styles: {
@@ -1170,22 +1179,29 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
 
             {/* Warnings */}
             {(() => {
-              const warnItems = results.items?.filter(i => i.status === 'warning' || i.status === 'unverifiable') || [];
+              const rawWarnItems = results.items?.filter(i => i.status === 'warning' || i.status === 'unverifiable') || [];
+              const seen = new Set();
+              const warnItems = rawWarnItems.filter(item => {
+                const key = item.finding || item.id;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+              });
               if (warnItems.length === 0) return null;
               return (
-                <div style={{ background: "#1c1200", border: "1px solid #78350f", borderRadius: 12,
+                <div style={{ background: "#2a2000", border: "1px solid #c49a2a", borderRadius: 12,
                   padding: 20, marginBottom: 24 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#fbbf24", textTransform: "uppercase",
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#c49a2a", textTransform: "uppercase",
                     letterSpacing: 1, marginBottom: 14 }}>⚡ Warnings ({warnItems.length})</div>
                   {warnItems.map((item, i) => {
                     const checkItem = results.checklist?.find(c => c.id === item.id);
                     return (
                       <div key={item.id || i} style={{ padding: "10px 0",
-                        borderBottom: i < warnItems.length - 1 ? "1px solid #78350f40" : "none" }}>
+                        borderBottom: i < warnItems.length - 1 ? "1px solid #c49a2a40" : "none" }}>
                         <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 4 }}>
-                          <span style={{ color: "#f59e0b", fontWeight: 700, flexShrink: 0, fontSize: 14 }}>!</span>
+                          <span style={{ color: "#c49a2a", fontWeight: 700, flexShrink: 0, fontSize: 15 }}>!</span>
                           <div style={{ flex: 1 }}>
-                            <span style={{ fontSize: 13, color: "#fde68a", lineHeight: 1.5 }}>
+                            <span style={{ fontSize: 15, color: "#e8c97a", lineHeight: 1.5 }}>
                               {item.finding || checkItem?.text || (item.status === 'unverifiable' ? 'Unable to verify' : 'Needs attention')}
                             </span>
                             {item.regulation && (
@@ -1194,7 +1210,7 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
                           </div>
                         </div>
                         {item.recommendation && (
-                          <div style={{ marginLeft: 22, fontSize: 12, color: "#fbbf24", lineHeight: 1.5 }}>
+                          <div style={{ marginLeft: 22, fontSize: 13, color: "#c49a2a", lineHeight: 1.5 }}>
                             Note: {item.recommendation}
                           </div>
                         )}
