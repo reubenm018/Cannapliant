@@ -7,6 +7,12 @@ const PRODUCT_TYPES = [
   { id: "non_mfg", label: "Flower / Non-Infused Pre-Rolls", icon: "🌿", desc: "Non-manufactured cannabis flower & pre-rolls" },
 ];
 
+const LABEL_TYPES = [
+  { id: "Packaging / Strain Label", desc: "Artwork only — no compliance variable data (batch #, UID, cannabinoids, ingredients, etc.)" },
+  { id: "Compliance Label", desc: "Variable data sticker or panel only (batch #, UID, cannabinoids, ingredients, licensee info, etc.)" },
+  { id: "Both", desc: "Full packaging including all compliance data — complete end-to-end review" },
+];
+
 // ── Embedded regulatory checklists derived from DCC regs ──
 const CHECKLISTS = {
   edibles: {
@@ -325,6 +331,21 @@ Output your analysis as JSON with this structure:
 
 IMPORTANT: The "regulation" field for every item MUST contain the exact DCC section number (e.g. §17408(a)(1)), Prop 65 citation, or LADCR reference. Every criticalIssues entry MUST start with the citation code followed by a colon and description. Every recommendations entry MUST reference the specific regulation.`;
 
+function buildSystemPrompt(labelType) {
+  const labelTypeSection = `
+
+LABEL TYPE CONTEXT:
+The user has indicated this image is: ${labelType}.
+Adjust your analysis accordingly:
+
+- If 'Packaging / Strain Label': Evaluate ONLY primary panel requirements (§17404) — product identity, universal symbol, net weight, government warning, Prop 65. Do NOT flag missing compliance label fields (batch number, UID, ingredients, cannabinoid content, etc.) as failures — these belong on the compliance label which was not uploaded. Note in your summary that a separate compliance label is required.
+
+- If 'Compliance Label': Evaluate ONLY the variable data fields: Product Identifier, Ingredients (with 'Ingredients:' header), Batch #, UID #, Package Date, Total THC%, THC mg/pkg, CBD mg/pkg, Licensee Name + phone or website. Do NOT flag missing packaging artwork elements as failures.
+
+- If 'Both': Evaluate all requirements for both primary panel and compliance label. This is a full compliance review.`;
+  return SYSTEM_PROMPT + labelTypeSection;
+}
+
 // ── Letter Grade Helper ──
 function scoreToGrade(score) {
   if (score >= 97) return { grade: "A+", color: "#22c55e" };
@@ -457,6 +478,7 @@ export default function ComplianceChecker() {
     return `CP-${ds}-${String(Math.floor(Math.random() * 900) + 100)}`;
   });
   const [showPassed, setShowPassed] = useState(false);
+  const [labelType, setLabelType] = useState('');
 
   const PASSWORD = 'finalbell2024';
 
@@ -511,7 +533,7 @@ export default function ComplianceChecker() {
   };
 
   const runAnalysis = async () => {
-    if (!selectedType || !uploadedFile) return;
+    if (!selectedType || !labelType || !uploadedFile) return;
     setAnalyzing(true);
     setError(null);
     setResults(null);
@@ -571,7 +593,7 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 4000,
-          system: SYSTEM_PROMPT,
+          system: buildSystemPrompt(labelType),
           messages: [{ role: "user", content: contentParts }],
         }),
       });
@@ -674,6 +696,10 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
           }),
           new Paragraph({
             children: [new TextRun({ text: `Product Type: ${selectedProduct}`, size: 20, color: '888888' })],
+            alignment: AlignmentType.CENTER,
+          }),
+          new Paragraph({
+            children: [new TextRun({ text: `Label Type: ${labelType}`, size: 20, color: '888888' })],
             alignment: AlignmentType.CENTER,
             spacing: { after: 300 },
             border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'dddddd', space: 1 } }
@@ -826,7 +852,7 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => { setQaMode(false); setResults(null); setUploadedFile(null); setFilePreview(null); setSelectedType(null); }}
+            <button onClick={() => { setQaMode(false); setResults(null); setUploadedFile(null); setFilePreview(null); setSelectedType(null); setLabelType(''); }}
               style={{ padding: "8px 16px", borderRadius: 6, border: !qaMode ? "1px solid #22c55e" : "1px solid #334155",
                 background: !qaMode ? "#052e1620" : "transparent", color: !qaMode ? "#22c55e" : "#94a3b8",
                 cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
@@ -897,14 +923,35 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
               ))}
             </div>
 
-            {/* File Upload */}
+            {/* Label Type + File Upload */}
             {selectedType && (
               <>
                 <h2 style={{ fontSize: 22, fontWeight: 700, color: "#f8fafc", marginBottom: 8 }}>
+                  What are you uploading?</h2>
+                <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 20 }}>
+                  Select the type of label so the AI knows which requirements to evaluate.</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 32 }}>
+                  {LABEL_TYPES.map(lt => (
+                    <button key={lt.id}
+                      onClick={() => { setLabelType(lt.id); setUploadedFile(null); setFilePreview(null); setError(null); }}
+                      style={{ padding: "14px 20px", borderRadius: 10, cursor: "pointer", textAlign: "left",
+                        border: labelType === lt.id ? "2px solid #22c55e" : "1px solid #1e293b",
+                        background: labelType === lt.id ? "#052e1615" : "#0f172a",
+                        transition: "all 0.15s ease" }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 3,
+                        color: labelType === lt.id ? "#22c55e" : "#e2e8f0" }}>{lt.id}</div>
+                      <div style={{ fontSize: 12, color: "#64748b" }}>{lt.desc}</div>
+                    </button>
+                  ))}
+                </div>
+
+                {labelType && (<>
+                <h2 style={{ fontSize: 22, fontWeight: 700, color: "#f8fafc", marginBottom: 8 }}>
                   Upload Label for Review</h2>
                 <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 20 }}>
-                  Upload a PDF or image of your product packaging/label. The AI will run the full{" "}
-                  {CHECKLISTS[selectedType].title} against it.</p>
+                  Upload a PDF or image of your label. The AI will evaluate it as a{" "}
+                  <strong style={{ color: "#22c55e" }}>{labelType}</strong> using the{" "}
+                  {CHECKLISTS[selectedType].title} checklist.</p>
 
                 <div onClick={() => fileRef.current?.click()}
                   style={{ border: "2px dashed #334155", borderRadius: 12, padding: 40,
@@ -987,6 +1034,7 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
                     </div>
                   ))}
                 </div>
+                </>)}
               </>
             )}
           </>
@@ -1001,7 +1049,7 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
             {/* Action Bar */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
               <button
-                onClick={() => { setResults(null); setUploadedFile(null); setFilePreview(null); setShowPassed(false); }}
+                onClick={() => { setResults(null); setUploadedFile(null); setFilePreview(null); setShowPassed(false); setLabelType(''); }}
                 style={{ padding: "8px 16px", borderRadius: 6, border: "1px solid #334155",
                   background: "transparent", color: "#94a3b8", cursor: "pointer", fontSize: 13 }}
               >
@@ -1057,6 +1105,10 @@ Evaluate every item on the checklist against this label. Return ONLY valid JSON 
                 <div>
                   <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Product Type</div>
                   <div style={{ fontSize: 13, color: "#cbd5e1" }}>{CHECKLISTS[selectedType]?.title}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Label Type</div>
+                  <div style={{ fontSize: 13, color: "#cbd5e1" }}>{labelType}</div>
                 </div>
                 <div>
                   <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>File</div>
